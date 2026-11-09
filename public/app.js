@@ -46,7 +46,7 @@ async function showSaved() {
     const empty = document.createElement("div");
     empty.className = "empty";
     const img = document.createElement("img");
-    img.src = "/icons/notebook.webp";
+    img.src = "/icons/2-notebook.webp";
     img.alt = "";
     const text = document.createElement("div");
     text.textContent = "Nothing saved yet. Tap Save on a job you like.";
