@@ -82,6 +82,4 @@ free for commercial use.
 
 ## Tools
 
-An AI assistant helped me write the saved-jobs feature, its tests and the page
-styling. I read through all of it, ran the app and the tests, and checked
-everything in the browser myself before handing it in.
+AI assistance was used for the saved-jobs feature, tests and page styling.
