@@ -8,8 +8,15 @@ import { addSaved, removeSaved, loadSavedIds, storeSavedIds } from "./lib/saved.
 const PORT = Number(process.env.PORT ?? 3000);
 const MAX_BODY = 10_000; // bytes - way more than { "jobId": "j1" } needs
 
+const SECURITY_HEADERS = {
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+  "referrer-policy": "no-referrer",
+  "content-security-policy": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'",
+};
+
 function sendJson(res, status, body) {
-  res.writeHead(status, { "content-type": "application/json; charset=utf-8" });
+  res.writeHead(status, { "content-type": "application/json; charset=utf-8", ...SECURITY_HEADERS });
   res.end(JSON.stringify(body));
 }
 
@@ -77,7 +84,7 @@ export function createApp(options = {}) {
         const file = url.pathname === "/" ? "index.html" : "app.js";
         const type = file.endsWith(".html") ? "text/html" : "text/javascript";
         const body = await readFile(new URL(`./public/${file}`, import.meta.url));
-        res.writeHead(200, { "content-type": `${type}; charset=utf-8` });
+        res.writeHead(200, { "content-type": `${type}; charset=utf-8`, ...SECURITY_HEADERS });
         return res.end(body);
       }
 
@@ -85,7 +92,7 @@ export function createApp(options = {}) {
         const name = url.pathname.slice("/icons/".length);
         if (!/^[a-z0-9-]+\.webp$/.test(name)) return sendJson(res, 404, { error: "Not found" });
         const body = await readFile(new URL(`./public/icons/${name}`, import.meta.url));
-        res.writeHead(200, { "content-type": "image/webp" });
+        res.writeHead(200, { "content-type": "image/webp", ...SECURITY_HEADERS });
         return res.end(body);
       }
 
