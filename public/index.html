@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="A small job board. Search internships, save the ones you like, and they stay saved." />
+    <link rel="icon" href="/icons/rocket.webp" />
+    <title>Job Board</title>
+    <style>
+      :root {
+        /* Emerald Ink + Champagne: warm paper base, deep green secondary */
+        --paper: #f8e7c9;
+        --card: #fdf4e0;
+        --line: #e8d3a8;
+        --ink: #2a2418;
+        --muted: #6b5d43;
+        --accent: #064e3b;
+        --accent-ink: #f8e7c9;
+        --accent-soft: rgba(6, 78, 59, 0.1);
+        --side: #064e3b;
+        --side-soft: #0b5c46;
+        --side-text: #bfe3d2;
+        --side-pill: #f8e7c9;
+        --side-pill-ink: #064e3b;
+        --welcome-1: #064e3b;
+        --welcome-2: #0e7a57;
+        --welcome-ink: #f4ecd8;
+        --stipend-bg: rgba(6, 78, 59, 0.1);
+        --stipend-ink: #065f46;
+        --hover-line: #0b5c46;
+        --overlay: rgba(20, 40, 30, 0.45);
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+      }
+      img { display: block; }
+      button { font: inherit; }
+
+      /* the app shell: sidebar left, everything else right */
+      .shell { display: flex; min-height: 100vh; }
+
+      aside {
+        width: 240px; flex-shrink: 0;
+        background: var(--side); color: var(--side-text);
+        display: flex; flex-direction: column;
+        padding: 16px 12px;
+        position: sticky; top: 0; height: 100vh;
+      }
+      .brand {
+        display: flex; align-items: center; gap: 10px;
+        color: #fff; font-weight: 700; font-size: 15.5px;
+        padding: 4px 10px 16px;
+      }
+      .brand img { width: 28px; height: 28px; }
+      .side-label {
+        font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em;
+        padding: 14px 10px 6px; opacity: 0.7;
+      }
+      .side-item {
+        display: flex; align-items: center; justify-content: space-between;
+        width: 100%; text-align: left;
+        color: var(--side-text); background: none; border: 0;
+        font-size: 14px; padding: 6px 10px; border-radius: 8px;
+        cursor: pointer; transition: background 0.12s ease, color 0.12s ease;
+      }
+      .side-item:hover { background: var(--side-soft); color: #fff; }
+      .side-item .pill {
+        font-size: 11.5px; background: var(--side-pill); color: var(--side-pill-ink);
+        font-weight: 650; border-radius: 999px; padding: 2px 8px;
+      }
+      .side-foot {
+        margin-top: auto; font-size: 12px; line-height: 1.5;
+        padding: 12px 10px 4px; border-top: 1px solid var(--side-soft);
+      }
+      .side-foot img { width: 22px; height: 22px; margin-bottom: 6px; }
+
+      /* right side: top search bar, then the cards */
+      .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      .topbar {
+        position: sticky; top: 0; z-index: 5;
+        display: flex; align-items: center; gap: 12px;
+        background: var(--paper); border-bottom: 1px solid var(--line);
+        padding: 10px 20px;
+      }
+      #search {
+        flex: 1; max-width: 560px; margin: 0 auto;
+        font-size: 14.5px; padding: 9px 16px;
+        color: var(--ink);
+        border: 1px solid var(--line); border-radius: 10px;
+        background: var(--card); outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+      #search::placeholder { color: var(--muted); }
+      #search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+      .menu-btn {
+        display: none; border: 1px solid var(--line); background: var(--card);
+        color: var(--ink); border-radius: 8px; padding: 7px 10px; cursor: pointer;
+      }
+
+      main { padding: 20px; max-width: 900px; width: 100%; margin: 0 auto; }
+      .welcome {
+        background: linear-gradient(120deg, var(--welcome-1), var(--welcome-2));
+        color: var(--welcome-ink); border-radius: 16px; padding: 26px 26px 24px;
+        margin-bottom: 24px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      }
+      .welcome h1 { margin: 0 0 6px; font-size: clamp(20px, 3vw, 26px); letter-spacing: -0.01em; }
+      .welcome p { margin: 0; font-size: 14px; opacity: 0.92; }
+
+      .section-head { display: flex; align-items: baseline; gap: 10px; margin: 22px 0 10px; }
+      h2 { font-size: 15.5px; margin: 0; letter-spacing: -0.01em; }
+      .count { font-size: 12.5px; color: var(--muted); }
+
+      .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+      .card {
+        background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+        padding: 16px; display: flex; flex-direction: column; gap: 4px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+        animation: rise 0.3s ease both;
+      }
+      .card:hover { border-color: var(--hover-line); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); transform: translateY(-1px); }
+      @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+      .card strong { font-size: 14.5px; font-weight: 650; }
+      .card .meta { font-size: 13px; color: var(--muted); }
+      .card .stipend {
+        align-self: flex-start; font-size: 12px; color: var(--stipend-ink);
+        background: var(--stipend-bg); border-radius: 999px; padding: 3px 10px; margin: 6px 0 10px;
+      }
+      .card button {
+        align-self: flex-start; font-size: 13px; font-weight: 650;
+        border-radius: 999px; padding: 6px 16px; cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+      }
+      .card button:active { transform: scale(0.96); }
+      button.save { color: var(--accent); background: transparent; border: 1px solid var(--accent); }
+      button.save:hover { background: var(--accent-soft); }
+      button.save.saved { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); cursor: default; }
+      button.remove { color: var(--muted); background: transparent; border: 1px solid var(--line); }
+      button.remove:hover { color: var(--ink); border-color: var(--muted); background: rgba(0, 0, 0, 0.03); }
+      button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+      .empty {
+        grid-column: 1 / -1; text-align: center; color: var(--muted); font-size: 14px;
+        border: 1px dashed var(--line); border-radius: 14px; padding: 30px 16px; background: var(--card);
+      }
+      .empty img { width: 56px; height: 56px; margin: 0 auto 10px; }
+
+      /* phones: the sidebar slides in over the page */
+      .overlay { display: none; }
+      @media (max-width: 860px) {
+        .menu-btn { display: block; }
+        aside {
+          position: fixed; left: 0; top: 0; z-index: 20;
+          height: 100vh; transform: translateX(-100%);
+          transition: transform 0.2s ease;
+        }
+        body.nav-open aside { transform: none; }
+        body.nav-open .overlay {
+          display: block; position: fixed; inset: 0; z-index: 15;
+          background: var(--overlay);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside id="sidebar">
+        <div class="brand">
+          <img src="/icons/rocket.webp" alt="" />
+          <span>Job Board</span>
+        </div>
+        <div class="side-label">Board</div>
+        <button class="side-item" id="nav-roles" type="button"><span>All roles</span><span class="pill" id="side-jobs-count">0</span></button>
+        <button class="side-item" id="nav-saved" type="button"><span>Saved jobs</span><span class="pill" id="side-saved-count">0</span></button>
+        <div class="side-label">Places</div>
+        <div id="places"></div>
+        <div class="side-foot">
+          <img src="/icons/bag.webp" alt="" />
+          <div>Saved jobs are stored on this server, so they are here when you come back.</div>
+        </div>
+      </aside>
+
+      <div class="overlay" id="overlay"></div>
+
+      <div class="main">
+        <div class="topbar">
+          <button class="menu-btn" id="menu-btn" type="button" aria-label="Menu">&#9776;</button>
+          <input id="search" placeholder="Search by title, company or place" />
+        </div>
+
+        <main>
+          <div class="welcome">
+            <h1>Find your next internship</h1>
+            <p>Search the roles, save the ones you like, and they stay saved.</p>
+          </div>
+
+          <div class="section-head">
+            <h2>Open roles</h2>
+            <span class="count" id="jobs-count"></span>
+          </div>
+          <div class="cards" id="jobs"></div>
+
+          <div class="section-head" id="saved">
+            <h2>Saved jobs</h2>
+            <span class="count" id="saved-count"></span>
+          </div>
+          <div class="cards" id="saved-list"></div>
+        </main>
+      </div>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
